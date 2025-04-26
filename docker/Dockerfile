@@ -1,5 +1,8 @@
 FROM debian:stretch
 
+RUN echo "deb http://archive.debian.org/debian/ stretch main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security stretch/updates main contrib non-free" >> /etc/apt/sources.list
+
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
         build-essential             \
         cmake                       \
@@ -8,6 +11,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
         git                         \
         gnupg                       \
         libsqlite3-dev              \
+        default-mysql-server        \
         locales                     \
         man                         \
         nasm                        \
@@ -23,11 +27,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
         zip
 
 # install mysql
-RUN wget -O /tmp/RPM-GPG-KEY-mysql https://repo.mysql.com/RPM-GPG-KEY-mysql && \
-        apt-key add /tmp/RPM-GPG-KEY-mysql && \
-        /bin/echo -e "deb http://repo.mysql.com/apt/debian/ stretch mysql-5.7\ndeb-src http://repo.mysql.com/apt/debian/ stretch mysql-5.7" > /etc/apt/sources.list.d/mysql.list && \
-        apt-get update && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server
+# RUN wget -O /tmp/RPM-GPG-KEY-mysql https://repo.mysql.com/RPM-GPG-KEY-mysql && \
+#         apt-key add /tmp/RPM-GPG-KEY-mysql && \
+#         /bin/echo -e "deb http://repo.mysql.com/apt/debian/ stretch mysql-5.7\ndeb-src http://repo.mysql.com/apt/debian/ stretch mysql-5.7" > /etc/apt/sources.list.d/mysql.list && \
+#         apt-get update && \
+#         DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated mysql-server
 
 COPY docker_my.cnf /etc/my.cnf
 
@@ -54,6 +58,10 @@ ARG HOST_UID=1000
 ENV HOST_UID $HOST_UID
 
 RUN groupadd -g 1000 ithemal && useradd -m -s /bin/bash -r -u $HOST_UID -g ithemal ithemal
+
+RUN usermod -aG sudo ithemal && \
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
 USER ithemal
 WORKDIR /home/ithemal
 
@@ -70,4 +78,4 @@ RUN /bin/echo 'export PATH=/opt/conda/bin:$PATH' >> /home/ithemal/.bashrc && \
 RUN bash -lc 'pip install --upgrade --user pyhamcrest pip; jupyter notebook --generate-config'
 
 COPY notebook_config.patch /tmp/_docker_notebook_conf.patch
-RUN patch .jupyter/jupyter_notebook_config.py < /tmp/_docker_notebook_conf.patch
+RUN sed -i "s/^#?c\.NotebookApp\.ip =.*/c.NotebookApp.ip = '0.0.0.0'/" .jupyter/jupyter_notebook_config.py

@@ -11,7 +11,9 @@ main:
         movl $111, %ebx
         .byte 0x64, 0x67, 0x90
 
-        // CODE BLOCK GOES HERE
+        mov    %rbx, %rsi
+        mov    %rax, %rdx
+        mov    %r15, %rdi
 
         //      END_MARKER
         movl $222, %ebx

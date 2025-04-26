@@ -1,0 +1,23 @@
+name: ithemal
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  # Core Python
+  - python=3.9
+  # Add torchvision/torchaudio similarly if needed
+  # - pytorch::torchvision
+  # - pytorch::torchaudio
+
+  # Other packages
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - jupyter
+  - pyyaml
+  - pip # Ensure pip is included
+  # ... other dependencies ...
