@@ -329,7 +329,7 @@ def main():
         sys.exit(1)
 
     # Setup multiprocessing queues
-    input_queue = multiprocessing.Queue(maxsize=args.parallel * 4)
+    input_queue = multiprocessing.Queue()
     output_queue = multiprocessing.Queue()
 
     # --- Start worker processes ---
@@ -368,11 +368,13 @@ def main():
                         next(infile)
                     except StopIteration:
                         pass  # Handle case where file only had a header
-
+            
             # Feed the queue
             for i, line in enumerate(infile):
                 input_queue.put((i + 1, line))  # Send line number for logging
                 line_count += 1
+                print("\rReading input: Line %d / %d (%.1f%%)" % (i, total_lines, (float(i) / total_lines) * 100), end="")
+                sys.stdout.flush()
 
     except IOError as e:  # Use IOError for file errors in Python 2
         print("Error reading input file: {}".format(e), file=sys.stderr)
